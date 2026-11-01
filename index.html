@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Image Puzzle</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #2b2b2b;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #game-container {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+    }
+    .board, .piece-pool {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 4px;
+      background: #444;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .slot, .piece {
+      width: 100px;
+      height: 100px;
+      background-size: 300px 300px;
+      background-repeat: no-repeat;
+    }
+    .slot {
+      background-color: #222;
+      border: 2px dashed #666;
+    }
+    .piece {
+      cursor: grab;
+      border: 1px solid #fff;
+    }
+    .piece:active {
+      cursor: grabbing;
+    }
+    #message {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #4CAF50;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>3x3 Image Puzzle</h1>
+  <div id="game-container">
+    <div>
+      <h3>Drop Target Board</h3>
+      <div class="board" id="board"></div>
+    </div>
+    <div>
+      <h3>Puzzle Pieces (Drag from here)</h3>
+      <div class="piece-pool" id="pool"></div>
+    </div>
+  </div>
+  <div id="message"></div>
+
+  <script>
+    // Replace with any image URL you like
+    const imageUrl = 'https://picsum.photos/id/237/200/300';
+    const board = document.getElementById('board');
+    const pool = document.getElementById('pool');
+    const message = document.getElementById('message');
+
+    const totalPieces = 9;
+    let draggedElement = null;
+
+    // Create 9 drop slots
+    for (let i = 0; i < totalPieces; i++) {
+      const slot = document.createElement('div');
+      slot.classList.add('slot');
+      slot.dataset.index = i;
+      slot.addEventListener('dragover', (e) => e.preventDefault());
+      slot.addEventListener('drop', dropPiece);
+      board.appendChild(slot);
+    }
+
+    // Create 9 scrambled pieces
+    const indices = [...Array(totalPieces).keys()];
+    indices.sort(() => Math.random() - 0.5); // Shuffle pieces
+
+    indices.forEach((index) => {
+      const piece = document.createElement('div');
+      piece.classList.add('piece');
+      piece.draggable = true;
+      piece.dataset.correctIndex = index;
+      
+      // Calculate background position for a 3x3 grid slice
+      const x = (index % 3) * -100;
+      const y = Math.floor(index / 3) * -100;
+      piece.style.backgroundImage = `url(${imageUrl})`;
+      piece.style.backgroundPosition = `${x}px ${y}px`;
+
+      piece.addEventListener('dragstart', (e) => {
+        draggedElement = piece;
+      });
+
+      pool.appendChild(piece);
+    });
+
+    function dropPiece(e) {
+      e.preventDefault();
+      const targetSlot = e.currentTarget;
+
+      // If slot already has a piece, swap or place it back
+      if (targetSlot.children.length === 0) {
+        targetSlot.appendChild(draggedElement);
+        checkWinCondition();
+      }
+    }
+
+    function checkWinCondition() {
+      const slots = document.querySelectorAll('.slot');
+      let solved = true;
+
+      slots.forEach((slot) => {
+        const piece = slot.querySelector('.piece');
+        if (!piece || parseInt(piece.dataset.correctIndex) !== parseInt(slot.dataset.index)) {
+          solved = false;
+        }
+      });
+
+      if (solved && document.querySelectorAll('.slot .piece').length === totalPieces) {
+        message.textContent = '🎉 Congratulations! You solved the puzzle!';
+      }
+    }
+  </script>
+
+</body>
+</html>
