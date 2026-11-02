@@ -1,145 +1,352 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JS Image Puzzle</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #2b2b2b;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Clear HUB Puzzle Challenge</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+:root{
+    --piece-size: min(28vw, 110px);
+    --primary:#3fa34d;
+}
+
+body{
+    font-family: Arial, sans-serif;
+    background:#2b2b2b;
+    color:#fff;
+    min-height:100vh;
+    text-align:center;
+    padding:20px;
+}
+
+h1{
+    font-size:clamp(2rem,5vw,3rem);
+    margin-bottom:10px;
+}
+
+h2{
+    font-size:clamp(1rem,3vw,1.5rem);
+    color:#ddd;
+    margin-bottom:20px;
+}
+
+h3{
+    margin-bottom:10px;
+}
+
+#stats{
+    margin:15px 0;
+    font-size:18px;
+}
+
+#controls{
+    margin-bottom:20px;
+}
+
+button{
+    background:var(--primary);
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#30863d;
+}
+
+#game-container{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:30px;
+    margin-top:15px;
+}
+
+.board,
+.piece-pool{
+    display:grid;
+    grid-template-columns:repeat(3,var(--piece-size));
+    grid-template-rows:repeat(3,var(--piece-size));
+    gap:4px;
+    background:#444;
+    padding:10px;
+    border-radius:10px;
+}
+
+.slot,
+.piece{
+    width:var(--piece-size);
+    height:var(--piece-size);
+}
+
+.slot{
+    background:#222;
+    border:2px dashed #666;
+}
+
+.piece{
+    cursor:grab;
+    border:1px solid #fff;
+    background-repeat:no-repeat;
+    border-radius:4px;
+}
+
+.piece:active{
+    cursor:grabbing;
+}
+
+#message{
+    margin-top:20px;
+    font-size:1.4rem;
+    font-weight:bold;
+    color:#4CAF50;
+}
+
+#game-goal{
+    max-width:800px;
+    margin:40px auto 0;
+}
+
+#game-goal img{
+    width:100%;
+    max-width:400px;
+    height:auto;
+    border:2px solid white;
+    border-radius:10px;
+    margin-top:10px;
+}
+
+#game-goal p{
+    margin-top:15px;
+    line-height:1.7;
+    color:#ddd;
+}
+
+.footer{
+    margin-top:30px;
+    color:#999;
+    font-size:14px;
+}
+
+@media(max-width:768px){
+
+    #game-container{
+        flex-direction:column;
+        align-items:center;
     }
-    #game-container {
-      display: flex;
-      gap: 30px;
-      align-items: flex-start;
+
+    :root{
+        --piece-size:min(27vw,95px);
     }
-    .board, .piece-pool {
-      display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
-      gap: 4px;
-      background: #444;
-      padding: 10px;
-      border-radius: 8px;
+}
+
+@media(max-width:480px){
+
+    :root{
+        --piece-size:min(26vw,85px);
     }
-    .slot, .piece {
-      width: 100px;
-      height: 100px;
-      background-size: 300px 300px;
-      background-repeat: no-repeat;
+
+    body{
+        padding:10px;
     }
-    .slot {
-      background-color: #222;
-      border: 2px dashed #666;
+
+    button{
+        width:100%;
+        max-width:250px;
     }
-    .piece {
-      cursor: grab;
-      border: 1px solid #fff;
-    }
-    .piece:active {
-      cursor: grabbing;
-    }
-    #message {
-      margin-top: 20px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #4CAF50;
-    }
-  </style>
+}
+
+</style>
 </head>
+
 <body>
 
-  <h1>3x3 Image Puzzle</h1>
-  <div id="game-container">
+<h1>Welcome to Clear HUB</h1>
+<h2>Drag and Drop Puzzle Challenge</h2>
+
+<div id="stats">
+    Moves: <span id="moves">0</span>
+</div>
+
+<div id="controls">
+    <button onclick="resetGame()">🔄 Reset Puzzle</button>
+</div>
+
+<div id="game-container">
+
     <div>
-      <h3>Drop Target Board</h3>
-      <div class="board" id="board"></div>
+        <h3>Drop Target Board</h3>
+        <div class="board" id="board"></div>
     </div>
+
     <div>
-      <h3>Puzzle Pieces (Drag from here)</h3>
-      <div class="piece-pool" id="pool"></div>
+        <h3>Puzzle Pieces</h3>
+        <div class="piece-pool" id="pool"></div>
     </div>
-  </div>
-  <div id="message"></div>
 
-  <script>
-    // Replace with any image URL you like
-    const imageUrl = 'https://picsum.photos/id/237/200/300';
-    const board = document.getElementById('board');
-    const pool = document.getElementById('pool');
-    const message = document.getElementById('message');
+</div>
 
-    const totalPieces = 9;
-    let draggedElement = null;
+<div id="message"></div>
 
-    // Create 9 drop slots
-    for (let i = 0; i < totalPieces; i++) {
-      const slot = document.createElement('div');
-      slot.classList.add('slot');
-      slot.dataset.index = i;
-      slot.addEventListener('dragover', (e) => e.preventDefault());
-      slot.addEventListener('drop', dropPiece);
-      board.appendChild(slot);
+<div id="game-goal">
+
+    <h3>Game Goal</h3>
+
+    <img
+        src="https://clear-hub.net/images/img1.jpg"
+        alt="Puzzle Preview"
+    >
+
+    <p>
+        Arrange all puzzle pieces correctly to recreate the image shown above.
+        Drag puzzle pieces from the right side and place them onto the board.
+        When every piece is in the correct position, the puzzle is solved.
+    </p>
+
+</div>
+
+<div class="footer">
+    © Clear HUB Puzzle Challenge
+</div>
+
+<script>
+
+const imageUrl = "https://clear-hub.net/images/img1.jpg";
+
+const board = document.getElementById("board");
+const pool = document.getElementById("pool");
+const message = document.getElementById("message");
+const movesDisplay = document.getElementById("moves");
+
+const pieceCount = 9;
+
+let draggedPiece = null;
+let moves = 0;
+
+function buildBoard() {
+
+    board.innerHTML = "";
+    pool.innerHTML = "";
+    message.innerHTML = "";
+
+    for (let i = 0; i < pieceCount; i++) {
+
+        const slot = document.createElement("div");
+
+        slot.className = "slot";
+        slot.dataset.index = i;
+
+        slot.addEventListener("dragover", e => {
+            e.preventDefault();
+        });
+
+        slot.addEventListener("drop", dropPiece);
+
+        board.appendChild(slot);
     }
 
-    // Create 9 scrambled pieces
-    const indices = [...Array(totalPieces).keys()];
-    indices.sort(() => Math.random() - 0.5); // Shuffle pieces
+    let positions = [...Array(pieceCount).keys()];
 
-    indices.forEach((index) => {
-      const piece = document.createElement('div');
-      piece.classList.add('piece');
-      piece.draggable = true;
-      piece.dataset.correctIndex = index;
-      
-      // Calculate background position for a 3x3 grid slice
-      const x = (index % 3) * -100;
-      const y = Math.floor(index / 3) * -100;
-      piece.style.backgroundImage = `url(${imageUrl})`;
-      piece.style.backgroundPosition = `${x}px ${y}px`;
+    positions.sort(() => Math.random() - 0.5);
 
-      piece.addEventListener('dragstart', (e) => {
-        draggedElement = piece;
-      });
+    positions.forEach(index => {
 
-      pool.appendChild(piece);
+        const piece = document.createElement("div");
+
+        piece.className = "piece";
+        piece.draggable = true;
+        piece.dataset.correct = index;
+
+        const row = Math.floor(index / 3);
+        const col = index % 3;
+
+        piece.style.backgroundImage = `url(${imageUrl})`;
+        piece.style.backgroundSize = "300% 300%";
+        piece.style.backgroundPosition =
+            `${col * 50}% ${row * 50}%`;
+
+        piece.addEventListener("dragstart", () => {
+            draggedPiece = piece;
+        });
+
+        pool.appendChild(piece);
     });
 
-    function dropPiece(e) {
-      e.preventDefault();
-      const targetSlot = e.currentTarget;
+}
 
-      // If slot already has a piece, swap or place it back
-      if (targetSlot.children.length === 0) {
-        targetSlot.appendChild(draggedElement);
-        checkWinCondition();
-      }
+function dropPiece(e){
+
+    e.preventDefault();
+
+    const slot = e.currentTarget;
+
+    if(slot.children.length === 0){
+
+        slot.appendChild(draggedPiece);
+
+        moves++;
+
+        movesDisplay.textContent = moves;
+
+        checkWin();
     }
+}
 
-    function checkWinCondition() {
-      const slots = document.querySelectorAll('.slot');
-      let solved = true;
+function checkWin(){
 
-      slots.forEach((slot) => {
-        const piece = slot.querySelector('.piece');
-        if (!piece || parseInt(piece.dataset.correctIndex) !== parseInt(slot.dataset.index)) {
-          solved = false;
+    const slots = document.querySelectorAll(".slot");
+
+    let completed = true;
+
+    slots.forEach(slot => {
+
+        const piece = slot.querySelector(".piece");
+
+        if(
+            !piece ||
+            parseInt(piece.dataset.correct)
+            !==
+            parseInt(slot.dataset.index)
+        ){
+            completed = false;
         }
-      });
+    });
 
-      if (solved && document.querySelectorAll('.slot .piece').length === totalPieces) {
-        message.textContent = '🎉 Congratulations! You solved the puzzle!';
-      }
+    if(
+        completed &&
+        document.querySelectorAll(".slot .piece").length === pieceCount
+    ){
+
+        message.innerHTML =
+        "🎉 Congratulations! You solved the puzzle! 🎉";
     }
-  </script>
+}
+
+function resetGame(){
+
+    moves = 0;
+
+    movesDisplay.textContent = "0";
+
+    buildBoard();
+}
+
+buildBoard();
+
+</script>
 
 </body>
 </html>
